@@ -1,0 +1,12 @@
+{
+  "docs": [
+    {
+      "demo": true,
+      "value": 1234
+    },
+    {
+      "demo": true,
+      "value": 567
+    },
+  ]
+}

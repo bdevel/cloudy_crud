@@ -1,0 +1,7 @@
+
+class CloudyCrud::Query
+
+  
+  
+  
+end

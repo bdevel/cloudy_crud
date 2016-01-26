@@ -1,6 +1,6 @@
 
 
-module CloudyCrud::Validation
+module CloudyCrud::PermissionValidations
   def self.included(base)
     base.extend(ClassMethods)
   end

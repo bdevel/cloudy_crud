@@ -1,6 +1,8 @@
 require 'sinatra'
 require 'pry'
 require 'json'
+#require_relative '../lib/rack/streaming_import'
+
 set :port, 3000
 set :bind, 'localhost'
 
@@ -15,8 +17,56 @@ before do
 end
 
 
-options '/api/v1/*' do
+# use Rack::StreamingImport, :foo => "foo value" do |username, password|
+#   username == 'foo' && password == 'bar'
+# end
+
+# class MyCloudyCrudHanlder < CloudyCrud::BulkImportHandler
   
+#   def start(request)
+#     @db = ActiveRecord::Base.connection.raw_connection
+#     @db.exec("COPY large_table (col1, col2, etc) FROM STDIN WITH CSV")
+
+#     request[:foo]
+#   end
+
+#   def import(document)
+#     @db.put_copy_data(file.readline)
+#   end
+  
+#   def finish
+#     # We are done adding copy data
+#     @db.put_copy_end
+
+#     # Display any error messages
+#     while res = @db.get_result
+#       if e_message = res.error_message
+#         p e_message
+#       end
+#     end
+#   end
+  
+# end
+
+# use Rack::StreamingImport, :handler => MyCloudyCrudHanlder
+class Foo
+  def initialize(app, opts = {}, &block)
+    @app  = app
+  end
+  def call(env)
+    binding.pry
+  end
+end
+use Foo
+
+
+post "/" do
+  
+end
+
+options '/api/v1/*' do
+  content_type "application/vnd.api+json"
+    JSON.pretty_generate(params)
 end
 
 get '/api/v1/*' do

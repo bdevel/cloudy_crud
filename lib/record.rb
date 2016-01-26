@@ -1,86 +1,148 @@
-require 'ostruct'
+require "recursive_case_indifferent_ostruct"
 
-# module MagicAttributes
-#   def self.included(base)
-#     base.extend(ClassMethods)
-#   end
+# r = Record.new()
+# r.permissions.can_read?(user)
+# r.relationships.cars = []
 
-#   module ClassMethods
+# curl -X PUT $HOST/_config/admins/anna -d '"secret"'
 
-
-
-#     def magic_attributes(*attrs)
-#       attrs = attrs.first if attrs.is_a?(Array)
-
-#       attrs.each_key do |attr_name|
-#         if attrs[attr_name].is_a?(Array)
-#           define_method(attr_name) do
-#             calls = attrs[attr_name].dup
-#             obj = self # start with the current object
-#             calls.each do |call|
-#               obj = obj.send(call)
-#               return nil if obj.nil?
-#             end
-#             return obj
-#           end
-
-#         elsif attrs[attr_name].is_a?(Proc)
-#           define_method(attr_name) do
-#             attrs[attr_name].call(self)
-#           end
-#         else
-#           # Else just return the value
-#           define_method(attr_name) do
-#             attrs[attr_name]
-#           end
-#         end
-#       end
-
-
-#     end
-#   end
-
-# end
-
-#r = Record.new()
-#r.permissions.can_read?(user)
-#r.relationships.cars = []
-
+#{
+# type: 'taxi_drivers',
+# id:   'asdfg3-34sdf',
+# relationships: [
+#   {
+#     name: "driver",
+#     inverse: "cars",
+#     type: "people",
+#     id: 123
+#   }
+# ],
+# permissions: {
+#   admin: {
+#     groups: [ ],
+#     users: [
+#       "tyler"
+#     ]
+#   },
+#   read: {
+#     groups: [ ],
+#     users: [
+#       "tyler"
+#     ]
+#   },
+#   write: {
+#     groups: [ ],
+#     users: [
+#       "tyler",
+#       "gordon"
+#     ]
+#   }
+# },
+# attributes: {
+#   name: 'Tyler'
+# }
+#}
 class CloudyCrud::Record
-  #attr_accessor :type, :external_id, :created_at, :updated_at, :modifications
+  DEFAULT_CASE=:lower_camel
+  DEFAULT_DOMAIN='cloudy_crud'
   
   def initialize(**record)
     @record = record
   end
   
-  def type
-    @record[:type]
+  def id;         @record[:id]; end
+  def type;       @record[:type]; end
+  def domain;     @record[:domain] || DEFAULT_DOMAIN; end
+  def collection; @record[:collection] || type; end
+  
+  def id=(v);         @record[:id]         = v; end
+  def type=(v);       @record[:type]       = v; end
+  def domain=(v);     @record[:domain]     = v; end
+  def collection=(v); @record[:collection] = v; end
+
+  def user
+    if @user.nil?
+      if @record[:user].is_a?(Fixnum) || @record[:user].is_a?(String)
+        @user = CloudyCrud::User.find(@record[:user])
+      else
+        @user = @record[:user]
+      end
+    end
+    @user
   end
   
-  def attributes
-    @attributes ||= OpenStruct.new(@record[:attributes])
+  def user=(user)
+    @user          = user
+    @record[:user] = user
   end
-
-  def external_id
-    @record[:external_id]
+  
+  def [](k); attributes[k]; end
+  def []=(k,v); attributes[k] = v; end
+  def attributes
+    @attributes ||= RecursiveCaseIndifferentOstruct.new(@record[:attributes], DEFAULT_CASE)
   end
   
   def permissions
-    @record[:permissions]
+    @permissions ||= CloudyCrud::Permissions.build(user, @record[:permissions])
+  end
+  
+  def relationships
+    #@relationships ||= CloudyCrud::Relationships.new(@record[:relationships])
+  end
+  
+  def method_missing(meth, *args)
+    meth_s = meth.to_s
+    
+    # if assigning
+    if meth_s =~ /=$/
+      # do the assignment to attributes
+      attributes.send(meth, *args)
+      
+    elsif args.length > 0
+      # raise exception if they passed it with arguments
+      # as that's not a property we can get on the attributes
+      super
+    else
+      # Must be a gtter
+      attributes.send(meth)
+    end
+    
+  end
+  
+  def save
+    CloudyCrud.store.save(self)
+  end
+  
+  def destroy
+    CloudyCrud.store.destroy(self)
+  end
+  
+  def as_json(options={})
+    {
+      id:            id,
+      type:          type,
+      attributes:    attributes.as_json,
+      relationships: relationships.as_json,
+      permissions:   permissions.as_json
+    }
   end
   
   # class methods
   class << self
-    def find(type, id)
+    ID_SEGMENTS=3
+    ID_SEGMENT_LENGTH=5
+
+    # TODO
+    def find(id, type)
+      CloudyCrud.store.find(id, type)
     end
     
     # requesting_user, proposed_action (read/write/admin)
-    def find_by_url()
-      
-    end
+    #def find_by_url()
+    #end
     
-    def generate_external_id
-      segments   = 2
+    def generate_id
+      segments   = 3
       seg_length = 5
       # Don't use zero, O, o, i, I, or 1 as they look alike
       chars      = 'abcdefghjkmnpqrstuvwxyz'+
@@ -88,24 +150,11 @@ class CloudyCrud::Record
                    'ABCDEFGHJKMNPQRSTUVWXYZ'
       out = ''
       
-      segments.times do |i|
-        seg_length.times { out << chars[rand(chars.size)] }
+      ID_SEGMENTS.times do |i|
+        ID_SEGMENT_LENGTH.times { out << chars[rand(chars.size)] }
         out += '-' if i != segments - 1
       end
       out
-    end
-
-    # Take params from POST/PATCH, and a user and returns
-    # a new un-saved record.
-    def build(params, user)
-      self.new({
-                 type: params[:type],
-                 attributes: params[:attributes],
-                 external_id: self.generate_external_id,
-                 permissions: CloudyCrud::Permissions.build(
-                   params[:permissions], user
-                 )
-               })
     end
     
   end

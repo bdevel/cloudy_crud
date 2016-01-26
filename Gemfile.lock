@@ -1,0 +1,22 @@
+PATH
+  remote: .
+  specs:
+    cloudy_crud (0.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    json_stream_trigger (0.1)
+    minitest (5.7.0)
+    rack (1.6.4)
+    recursive_case_indifferent_ostruct (0.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  cloudy_crud!
+  json_stream_trigger
+  minitest
+  rack
+  recursive_case_indifferent_ostruct
