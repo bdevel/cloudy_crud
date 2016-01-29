@@ -13,9 +13,9 @@ end
 module Rack
   class CloudyCrudBulkImport
     VERSION = '0.1.0'
-    def initialize(app, opts = {}, &block)
+    def initialize(app, options = {}, &block)
       @app  = app
-      @opts = opts
+      @options = options
       @handler = @opts[:handler]
     end
 

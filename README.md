@@ -141,9 +141,9 @@ CloudyCrud.store do
   CloudyCrud::Postgres # return class to use
 end
 
-# Tell the Postgres how to get a connection
-CloudyCrud::Store::Postgres.connection do
-  ActiveRecord::Base.connection # Rails example
+# Tell the Postgres how to checkout from your connection pool
+CloudyCrud::Store::Postgres.with_connection = lambda do |&block|
+  ActiveRecord::Base.with_connection(&block)# Rails example
 end
 ```
 
@@ -195,24 +195,24 @@ the default by creating an accessor blocks like so:
 ```ruby
 
 # Define how to get the current user from the request
-CloudyCrud::Request.current_user do |request|
+CloudyCrud::Request.current_user = lambda do |request|
   User.find(request.session[:user_id])
   # Also available: `request.env` and `request.params` 
 end
 
-CloudyCrud::User.find do |id|
+CloudyCrud::User.find = lambda do |id|
   User.find(id)
 end
 
-CloudyCrud::User.id do |user|
+CloudyCrud::User.id = lambda do |user|
   user.uuid # use .uuid instead of .id, the default
 end
 
-CloudyCrud::User.groups do |user|
+CloudyCrud::User.groups = lambda do |user|
   user.permission_groups # default is [] for no groups
 end
 
-CloudyCrud::UserGroup.id do |group|
+CloudyCrud::UserGroup.id = lambda do |group|
   group.uuid # default is .id
 end
 

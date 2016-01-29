@@ -1,5 +1,7 @@
+require_relative 'customizable_class_method'
 
 module CloudyCrud
+  include CustomizableClassMethod
   class Error < ::Exception
   end
 
@@ -13,7 +15,9 @@ module CloudyCrud
   
 end
 
-require_relative 'customizable_class_method'
+require_relative 'store'
+require_relative 'store/postgres'
+
 require_relative 'record'
 
 require_relative 'user'

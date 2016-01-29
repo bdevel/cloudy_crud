@@ -6,9 +6,12 @@ Gem::Specification.new do |s|
   s.description = ""
   s.authors     = ["Tyler Roberts"]
   s.email       = 'code@polar-concepts.com'
-  s.files       = ["lib/cloudy_crud.rb"]
-  s.homepage    =
-    'http://github.com/bdevel/cloudy_crud'
-  s.license       = 'MIT'
+  s.files       = Dir['README.md', 'lib/**/*']
+  s.homepage    = 'http://github.com/bdevel/cloudy_crud'
+  s.license     = 'MIT'
+
+  s.add_runtime_dependency "recursive_case_indifferent_ostruct", '~> 0'
+  s.add_runtime_dependency 'json_stream_trigger', '~> 0'
+
 end
 

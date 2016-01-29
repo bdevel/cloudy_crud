@@ -1,5 +1,5 @@
 require "recursive_case_indifferent_ostruct"
-
+require 'json'
 # r = Record.new()
 # r.permissions.can_read?(user)
 # r.relationships.cars = []
@@ -115,6 +115,10 @@ class CloudyCrud::Record
   
   def destroy
     CloudyCrud.store.destroy(self)
+  end
+
+  def to_json
+    JSON.dump(as_json)
   end
   
   def as_json(options={})
