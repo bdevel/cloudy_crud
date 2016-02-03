@@ -12,7 +12,6 @@ module CustomizableClassMethod
 
       # Define our class method assignment
       self.define_singleton_method(name.to_s + '=') do |new_block|
-        puts "defining new block for #{name}"
         @@defined_blocks[name] = new_block
       end
 

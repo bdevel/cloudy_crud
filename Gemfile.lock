@@ -10,6 +10,8 @@ GEM
   specs:
     json_stream_trigger (0.1)
     minitest (5.7.0)
+    minitest-hooks (1.4.0)
+    pg (0.18.4)
     rack (1.6.4)
     recursive_case_indifferent_ostruct (0.1)
 
@@ -19,4 +21,6 @@ PLATFORMS
 DEPENDENCIES
   cloudy_crud!
   minitest
+  minitest-hooks
+  pg
   rack

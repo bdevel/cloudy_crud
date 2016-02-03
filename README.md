@@ -83,8 +83,8 @@ Each set of permissions (`admin`, `read`, `write`) has the property `users` and 
 
 ### ID Generation
 By default each new CloudyCrud record will get a new ID with the pattern `xxxxx-xxxxx-xxxxx`
-where `x` is `a-z A-Z 2-9` with the exclusion of characters that look alike (i,I,l,0,O,o).
-Should `54^(5*3)` not be a large enough domain when scoped by object type and user, you can
+where `x` is `a-z 2-9` with the exclusion of characters that look alike (i,I,l,0,O,o).
+Should `31^(3*5)` not be a large enough domain when scoped by object type, you can
 expand it by setting `CloudyCrud::Record::ID_SEGMENTS` AND `CloudyCrud::Record::ID_SEGMENT_LENGTH`
 to larger values than `3` and `5`, respectively.
 

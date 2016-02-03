@@ -14,12 +14,19 @@ module CloudyCrud
       params = {} if params.nil?
       
       self.ensure_nil_or_array_of_values(params[:groups], "Permission groups")
-      self.ensure_nil_or_array_of_values(params[:users], "Permission users")
+      self.ensure_nil_or_array_of_values(params[:users],  "Permission users")
+
+      user_obj = CloudyCrud::User.ensure_instance(user)
+      if user_obj.id
+        user_ids = [user_obj.id]
+      else
+        user_ids = []
+      end
       
       # Take what came in from params or use the default
       self.new(
         groups: (params[:groups] || []),
-        users:  (params[:users]  || [user.id] )
+        users:  (params[:users]  || user_ids )
       )
     end
 

@@ -4,7 +4,7 @@ module CloudyCrud
   include CustomizableClassMethod
   class Error < ::Exception
   end
-
+  
   class InvalidRequest < ::Exception
   end
 

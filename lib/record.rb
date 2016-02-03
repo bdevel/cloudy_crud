@@ -49,12 +49,18 @@ class CloudyCrud::Record
   def initialize(**record)
     @record = record
   end
+
+  def inspect
+    @record.inspect
+  end
   
-  def id;         @record[:id]; end
+  def _id;        @record[:_id];  end # internal database ID
+  def id;         @record[:id];   end
   def type;       @record[:type]; end
   def domain;     @record[:domain] || DEFAULT_DOMAIN; end
   def collection; @record[:collection] || type; end
-  
+
+  def _id=(v);        @record[:_id]        = v; end # internal database ID
   def id=(v);         @record[:id]         = v; end
   def type=(v);       @record[:type]       = v; end
   def domain=(v);     @record[:domain]     = v; end
@@ -87,6 +93,8 @@ class CloudyCrud::Record
   end
   
   def relationships
+    # select count(0) from cloudy_crud.records where data @> '{"relationships": {"author": {"data": [{"id": "122345", "type": "authors"}]}}}'::jsonb;
+    @record[:relationships]
     #@relationships ||= CloudyCrud::Relationships.new(@record[:relationships])
   end
   
@@ -110,7 +118,13 @@ class CloudyCrud::Record
   end
   
   def save
-    CloudyCrud.store.save(self)
+    begin
+      @record[:id] = self.class.generate_id
+      CloudyCrud.store.save(self)
+    rescue Exception => e
+      self.id = nil # reset this
+      raise e
+    end
   end
   
   def destroy
@@ -125,9 +139,9 @@ class CloudyCrud::Record
     {
       id:            id,
       type:          type,
-      attributes:    attributes.as_json,
-      relationships: relationships.as_json,
-      permissions:   permissions.as_json
+      attributes:    attributes.to_h,
+      relationships: relationships.to_h,
+      permissions:   permissions.to_h
     }
   end
   
@@ -135,7 +149,7 @@ class CloudyCrud::Record
   class << self
     ID_SEGMENTS=3
     ID_SEGMENT_LENGTH=5
-
+    
     # TODO
     def find(id, type)
       CloudyCrud.store.find(id, type)
@@ -146,20 +160,19 @@ class CloudyCrud::Record
     #end
     
     def generate_id
-      segments   = 3
-      seg_length = 5
       # Don't use zero, O, o, i, I, or 1 as they look alike
       chars      = 'abcdefghjkmnpqrstuvwxyz'+
-                   '23456789' +
-                   'ABCDEFGHJKMNPQRSTUVWXYZ'
+                   '23456789' 
+                   #'ABCDEFGHJKMNPQRSTUVWXYZ'
       out = ''
       
       ID_SEGMENTS.times do |i|
         ID_SEGMENT_LENGTH.times { out << chars[rand(chars.size)] }
-        out += '-' if i != segments - 1
+        out += '-' if i != ID_SEGMENTS - 1
       end
       out
     end
     
   end
 end
+

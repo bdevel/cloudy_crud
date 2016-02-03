@@ -25,21 +25,25 @@ module CloudyCrud::Store
     
     def self.save(record)
       # create scheme and table if doesn't exist.
-      if record[:_id]
-        sql = 'UPDATE cloudy_crud.records ' +
-              'SET updated_at = NOW(), data = $1::text '+
-              'WHERE cloudy_crud.records.id = $2::int'
-        self.with_connection {|c| c.exec_params(sql, [record.to_json, record[:_id]]) }
+      if record._id
+        sql = %~ UPDATE cloudy_crud.records
+              SET updated_at = NOW(), data = $1::jsonb
+              WHERE cloudy_crud.records.id = $2::int ~
+        self.with_connection {|c| c.exec_params(sql, [record.to_json, record._id]) }
+        
       else
-        self.new_collection_if_needed(domain, collection)
-        sql = 'INSERT INTO "cloudy_crud"."records" (created_at, updated_at, data) ' +
-              'VALUES (NOW(), NOW(), $1::text)'
-        self.with_connection {|c| c.exec_params(sql, [record.to_json])}
+        full_collection_name_safe = self.new_collection_if_needed(record.domain, record.collection)
+        sql = %~ INSERT INTO #{full_collection_name_safe} (domain, collection, data, created_at, updated_at)
+              VALUES ($1::text, $2::text, $3::jsonb, NOW(), NOW()) ~
+        self.with_connection do |c|
+          c.exec_params(sql, [record.domain, record.collection, record.to_json])
+          record._id = c.exec('SELECT lastval()')[0]["lastval"].to_i
+        end
       end
     end
 
     def self.destroy(record)
-      if record[:_id]
+      if record._id
       else
         raise CloudyCrud::Error.new("Cannot destroy a record that has not been saved.")
       end
@@ -50,8 +54,8 @@ module CloudyCrud::Store
             SELECT * FROM "cloudy_crud"."records"
             WHERE
               "domain"     = $1::text    AND
-              "collection" = $2::text    AND 
-              "data"       @> $3::text;
+              "collection" = $2::text    AND
+              "data"       @> $3::jsonb;
       ~
       self.with_connection do |conn|
         result = conn.exec_params(
@@ -72,7 +76,6 @@ module CloudyCrud::Store
 
     def self.schema_setup
       sql = %~
-      -- drop table if exists cloudy_crud.records;
       CREATE SCHEMA IF NOT EXISTS cloudy_crud;
       CREATE TABLE IF NOT EXISTS cloudy_crud.records (
         id         SERIAL,
@@ -94,22 +97,26 @@ module CloudyCrud::Store
       index_name      = "cloudy_crud_records_#{domain}_#{collection}_data_path_ops"
       full_name_safe  = ''
       index_name_safe = ''
+      domain_safe     = ''
+      collection_safe = ''
       
       self.with_connection do |db|
-        full_name_safe  = db.escape_identifier(['cloud_crud', table_name])
-        index_name_safe = db.escape_identifier(index_name)
+        full_name_safe  = db.quote_ident(['cloudy_crud', table_name])
+        index_name_safe = db.quote_ident(index_name)
+        domain_safe     = db.escape_string(domain)
+        collection_safe = db.escape_string(collection)
       end
       
-      if !self.pg_data[:tables].include?(table_name)
+      if !self.pg_class[:tables].include?(table_name)
         sql = %~
         CREATE TABLE #{full_name_safe} (
-          CHECK ("domain" = $1 AND "collection" = $2)
+          CHECK ("domain" = '#{domain_safe}' AND "collection" = '#{collection_safe}')
         ) INHERITS ("cloudy_crud"."records");  ~
-        self.with_connection {|c| c.exec_params(sql, [domain, collection]) }
+        self.with_connection {|c| c.exec(sql) }
         did_change = true
       end
       
-      if !self.pg_data[:indices].include?(index_name)
+      if !self.pg_class[:indices].include?(index_name)
         sql = %~
         CREATE INDEX
           #{index_name_safe}
@@ -122,6 +129,7 @@ module CloudyCrud::Store
 
       # Clear this cache since we changed the schema
       @@pg_class = nil if did_change
+      full_name_safe
     end
     
     

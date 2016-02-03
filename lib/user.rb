@@ -9,7 +9,11 @@ class CloudyCrud::User
   end
   
   customizable_class_method :id do |user|
-    user.id
+    if user
+      user.id
+    else
+      nil
+    end
   end
   
   customizable_class_method :groups do |user|

@@ -26,7 +26,14 @@ module CloudyCrud
     def can_write?(user)
       write.include?(user) || is_admin?(user)
     end
-    
+
+    def to_h
+      {
+        admin: admin.to_h,
+        read:  read.to_h,
+        write: write.to_h
+      }
+    end
     
     # Takes params from a POST/PATCH and a user
     # and creates a new Permissions object.
