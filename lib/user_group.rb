@@ -13,6 +13,13 @@ class CloudyCrud::UserGroup
     self.class.id(@group)
   end
 
-  
+  def self.ensure_instance(group)
+    if group.is_a?(CloudyCrud::UserGroup)
+      group
+    else
+      CloudyCrud::UserGroup.new(group)
+    end
+  end
+    
 end
 

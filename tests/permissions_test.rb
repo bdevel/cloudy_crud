@@ -36,9 +36,9 @@ describe CloudyCrud::Permissions do
       assert p.read.groups.empty?
       assert p.write.groups.empty?
       
-      assert p.admin.users.include?(@user.id)
-      assert p.read.users.include?(@user.id)
-      assert p.write.users.include?(@user.id)
+      assert p.admin.users.include?(@user)
+      assert p.read.users.include?(@user)
+      assert p.write.users.include?(@user)
     end
     
     it "should accept permissions from params" do
@@ -65,7 +65,7 @@ describe CloudyCrud::Permissions do
     end
     
     it "is true for admins in groups" do
-      assert @ccp.is_admin?(TestUser.new(:id => "xxxx", :groups => ['members'] ))
+      assert @ccp.is_admin?(TestUser.new(:id => "xxxx", :groups => ['members'] )), @ccp.to_h
     end
     
     it "is false for non-admins" do

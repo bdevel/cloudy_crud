@@ -17,7 +17,11 @@ class CloudyCrud::User
   end
   
   customizable_class_method :groups do |user|
-    [] # no groups by default.
+    if user.respond_to?(:groups)
+      user.groups
+    else
+      []
+    end
   end
 
   def initialize(user)
@@ -29,7 +33,7 @@ class CloudyCrud::User
   end
 
   def groups
-    self.class.groups(@user)
+    self.class.groups(@user).map {|g| CloudyCrud::UserGroup.ensure_instance(g)}
   end
   
   # Make sure that user is an instance of CloudyCrud::User

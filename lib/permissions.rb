@@ -10,7 +10,11 @@ module CloudyCrud
       # Map the read, write, admin into PermissionSet objects
       params = hash.dup
       hash.each do |k, v|
-        params[k] = PermissionsSet.new(v)
+        if v.is_a?(PermissionsSet)
+          params[k] = v
+        else
+          params[k] = PermissionsSet.new(v)
+        end
       end
       super params
     end
@@ -26,7 +30,7 @@ module CloudyCrud
     def can_write?(user)
       write.include?(user) || is_admin?(user)
     end
-
+    
     def to_h
       {
         admin: admin.to_h,

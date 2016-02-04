@@ -12,10 +12,10 @@ describe CloudyCrud::Record do
     CloudyCrud.store = lambda {DummyStore}
     @user = TestUser.new
     @params = {
-      user: @user,
-      domain: 'bdevel',
+      user:       @user,
+      domain:     'bdevel',
       collection: 'cars',
-      type: "cars",
+      type:       "cars",
       attributes: {
         manufacturerName: "Honda",
         year: 2002,
@@ -66,9 +66,9 @@ describe CloudyCrud::Record do
     
     it "should call Store.save" do
       @record.save
-      assert_equal 1,        DummyStore.calls.size
-      assert_equal :save,    DummyStore.calls.last[:method]
-      assert_equal [record], DummyStore.calls.last[:args]
+      assert_equal 1,         DummyStore.calls.size
+      assert_equal :save,     DummyStore.calls.last[:method]
+      assert_equal [@record], DummyStore.calls.last[:args]
     end
     
   end
