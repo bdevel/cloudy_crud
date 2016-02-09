@@ -68,6 +68,7 @@ class CloudyCrud::Record
 
   def user
     if @user.nil?
+      # Fetch the user if the value we have is a number or string
       if @record[:user].is_a?(Fixnum) || @record[:user].is_a?(String)
         @user = CloudyCrud::User.find(@record[:user])
       else
@@ -94,9 +95,10 @@ class CloudyCrud::Record
   
   def relationships
     # select count(0) from cloudy_crud.records where data @> '{"relationships": {"author": {"data": [{"id": "122345", "type": "authors"}]}}}'::jsonb;
-    @record[:relationships]
-    #@relationships ||= CloudyCrud::Relationships.new(@record[:relationships])
+    #@record[:relationships]
+    @relationships ||= CloudyCrud::Relationships.new(@record[:relationships])
   end
+  
   
   def method_missing(meth, *args)
     meth_s = meth.to_s
@@ -112,6 +114,7 @@ class CloudyCrud::Record
       super
     else
       # Must be a gtter
+      # TODO: Do we want to check the relationships as well if this is nil?
       attributes.send(meth)
     end
     

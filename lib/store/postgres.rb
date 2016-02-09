@@ -1,6 +1,7 @@
 
 # http://ruby-journal.com/how-to-import-millions-records-via-activerecord-within-minutes-not-hours/
 
+# TODO: Unify type and collection as they should always be the same.
 
 module CloudyCrud::Store
   class Postgres
@@ -42,7 +43,9 @@ module CloudyCrud::Store
       end
     end
 
-    def self.destroy(record)
+    def self.destroy(record, requesting_user=nil)
+      # make sure is admin to delete
+      # data #> '{permissions,admin,users}' ? 'tyler' OR data data #> '{permissions,admin,groups}' ?| array['public', '453']
       if record._id
       else
         raise CloudyCrud::Error.new("Cannot destroy a record that has not been saved.")
@@ -50,6 +53,11 @@ module CloudyCrud::Store
     end
     
     def self.find(query)
+      # Is admin or is reader
+      # data #> '{permissions,admin,users}' ? 'tyler' -- does that array include tyler?
+      # data #> '{permissions,admin,groups}' ?| array['public', '453']; -- does groups include any of our array items?
+      # data #> '{permissions,read,users}' ? 'tyler' -- does that array include tyler?
+      # data #> '{permissions,read,groups}' ?| array['public', '453']; -- does groups include any of our array items?
       sql = %~ SET constraint_exclusion = partition; -- Make query go to the right partition
             SELECT * FROM "cloudy_crud"."records"
             WHERE
@@ -117,6 +125,12 @@ module CloudyCrud::Store
       end
       
       if !self.pg_class[:indices].include?(index_name)
+
+        # TODO: CREATE INDEX asdf_admin_groups ON cloudy_crud.records_asdf USING GIN ((data #> '{permissions,admin,groups}'::text[] ));
+        # TODO: CREATE INDEX asdf_admin_groups ON cloudy_crud.records_asdf USING GIN ((data #> '{permissions,admin,users}'::text[] ));
+        # TODO: CREATE INDEX asdf_admin_groups ON cloudy_crud.records_asdf USING GIN ((data #> '{permissions,read,users}'::text[] ));
+        # TODO: CREATE INDEX asdf_admin_groups ON cloudy_crud.records_asdf USING GIN ((data #> '{permissions,read,groups}'::text[] ));
+        
         sql = %~
         CREATE INDEX
           #{index_name_safe}

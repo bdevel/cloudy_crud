@@ -22,6 +22,15 @@ class CloudyCrud::Relationship
       data:  [ {type: "", id: ""}, {type: "", id: ""} ]
     }
   end
+
+
+  def self.ensure_instance(name, hash_or_obj)
+    if hash_or_obj.is_a?(CloudyCrud::Relationship)
+      hash_or_obj
+    else
+      CloudyCrud::Relationship.new(name, hash_or_obj)
+    end
+  end
   
 end
   

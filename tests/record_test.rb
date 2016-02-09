@@ -1,10 +1,5 @@
 require_relative 'test_helpers'
 require "minitest/autorun"
-begin
-  require 'pry'
-rescue
-end
-
 
 describe CloudyCrud::Record do
   before :each do
