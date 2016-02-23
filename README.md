@@ -128,7 +128,7 @@ database store if and how it wants to segment the records based on the domain
 and the collection name.
 
 When defining your routes, ensure that they have dynamic segments
-`/api/:_domain/:_collection`
+`/api/:domain/:collection`
 
 ### Database Stores
 
@@ -141,10 +141,11 @@ CloudyCrud.store do
   CloudyCrud::Postgres # return class to use
 end
 
-# Tell the Postgres how to checkout from your connection pool
-CloudyCrud::Store::Postgres.with_connection = lambda do |&block|
-  ActiveRecord::Base.with_connection(&block)# Rails example
-end
+# Tell the Postgres how to connect
+CloudyCrud::Store::Postgres.connection_config = 'postgres://user:password@host:port/database_name'
+
+# Or in Rails
+CloudyCrud::Store::Postgres.connection_config = ActiveRecord::Base.connection_config
 ```
 
 #### Postgres
@@ -153,8 +154,6 @@ By default, the Postgres store handler will create a new schema namespace for
 each domain and a new table for each collection. The schema namespaces allows
 for different users or applications to have the same collection names and having
 separate tables for collections allows for better indexing and faster access.
-
-?? What about permissions?
 
 ```sql
 ---supports indexing the @> operator only. Key and value is hashed as index key

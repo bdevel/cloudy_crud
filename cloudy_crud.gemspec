@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency "recursive_case_indifferent_ostruct", '~> 0'
   s.add_runtime_dependency 'json_stream_trigger', '~> 0'
-  s.add_runtime_dependency 'sequel', '~> 0'
+  s.add_runtime_dependency 'sequel', '<5.0.0'
 
 end
 

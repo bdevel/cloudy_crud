@@ -1,5 +1,6 @@
 require "recursive_case_indifferent_ostruct"
 require 'json'
+require_relative 'relationships'
 # r = Record.new()
 # r.permissions.can_read?(user)
 # r.relationships.cars = []
@@ -143,7 +144,7 @@ class CloudyCrud::Record
       id:            id,
       type:          type,
       attributes:    attributes.to_h,
-      relationships: relationships.to_h,
+      relationships: relationships.as_json,
       permissions:   permissions.to_h
     }
   end
